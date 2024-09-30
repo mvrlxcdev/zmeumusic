@@ -6,29 +6,56 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
-// Set of Material typography styles to start with
 val Typography = Typography(
-    bodyLarge = TextStyle(
-        fontFamily = FontFamily.Default,
-        fontWeight = FontWeight.Normal,
-        fontSize = 16.sp,
-        lineHeight = 24.sp,
-        letterSpacing = 0.5.sp
-    )
-    /* Other default text styles to override
     titleLarge = TextStyle(
-        fontFamily = FontFamily.Default,
-        fontWeight = FontWeight.Normal,
-        fontSize = 22.sp,
-        lineHeight = 28.sp,
-        letterSpacing = 0.sp
+        fontSize = 0.sp,
+        fontWeight = FontWeight.Bold
+    ),
+    titleMedium = TextStyle(
+        fontSize = 32.sp,
+        fontWeight = FontWeight.Bold
+    ),
+    titleSmall = TextStyle(
+        fontSize = 24.sp,
+        fontWeight = FontWeight.Bold
+    ),
+
+    bodyLarge = TextStyle(
+        fontSize = 0.sp,
+        fontWeight = FontWeight.Normal
+    ),
+    bodyMedium = TextStyle(
+        fontSize = 24.sp,
+        fontWeight = FontWeight.Normal
+    ),
+    bodySmall = TextStyle(
+        fontSize = 16.sp,
+        fontWeight = FontWeight.Normal
+    ),
+
+    labelLarge = TextStyle(
+        fontSize = 0.sp,
+        fontWeight = FontWeight.Medium
+    ),
+    labelMedium = TextStyle(
+        fontSize = 0.sp,
+        fontWeight = FontWeight.Normal
     ),
     labelSmall = TextStyle(
-        fontFamily = FontFamily.Default,
-        fontWeight = FontWeight.Medium,
-        fontSize = 11.sp,
-        lineHeight = 16.sp,
-        letterSpacing = 0.5.sp
+        fontSize = 0.sp,
+        fontWeight = FontWeight.Normal
+    ),
+
+    displayLarge = TextStyle(
+        fontSize = 0.sp,
+        fontWeight = FontWeight.Bold
+    ),
+    displayMedium = TextStyle(
+        fontSize = 0.sp,
+        fontWeight = FontWeight.Bold
+    ),
+    displaySmall = TextStyle(
+        fontSize = 0.sp,
+        fontWeight = FontWeight.Bold
     )
-    */
 )

@@ -29,7 +29,7 @@ fun NavGraphBuilder.searchScreen(
             SearchScreen(
                 viewModel = koinViewModel<SearchViewModel>(),
                 onCardClick = onCardClick,
-                activeSongID = playerViewModel.uiState.collectAsState().value.currentTrackID,
+                activeTrackID = playerViewModel.uiState.collectAsState().value.currentTrackData.trackUrl,
                 isAbleToPlay = playerViewModel.uiState.collectAsState().value.isAbleToPlay
             )
         },

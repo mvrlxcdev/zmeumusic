@@ -1,17 +1,35 @@
 package dev.mvrlxc.zmeumusic.ui.screen.player
 
 import androidx.lifecycle.viewModelScope
+import dev.mvrlxc.zmeumusic.data.model.TrackData
 import dev.mvrlxc.zmeumusic.data.remote.model.SearchSongsDTO
 import dev.mvrlxc.zmeumusic.domain.player.MediaPlayerController
 import dev.mvrlxc.zmeumusic.domain.player.MediaPlayerListener
 import dev.mvrlxc.zmeumusic.ui.base.BaseViewModel
 import dev.mvrlxc.zmeumusic.ui.base.ViewEvent
 import dev.mvrlxc.zmeumusic.utils.getTrackLink
+import dev.mvrlxc.zmeumusic.utils.millisToMinutesAndSeconds
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlin.math.absoluteValue
 
 class PlayerViewModel(
     private val mediaPlayerController: MediaPlayerController,
 ) : BaseViewModel<PlayerViewState, PlayerViewEvent>() {
+
+    private var currentTrackIndex: Int = -1
+    private lateinit var trackDataList: List<TrackData>
+
+    init {
+        prepare()
+    }
+
     override fun createInitialState(): PlayerViewState = PlayerViewState()
 
     override fun onTriggerEvent(event: PlayerViewEvent) {
@@ -22,7 +40,7 @@ class PlayerViewModel(
                 }
 
                 is PlayerViewEvent.OnPlayIconClick -> {
-                    onResumePause()
+                    onPause()
                 }
 
                 is PlayerViewEvent.OnHideShowMiniPlayer -> {
@@ -36,105 +54,94 @@ class PlayerViewModel(
                 is PlayerViewEvent.OnPlayPrevious -> {
                     playPrevious()
                 }
+
+                is PlayerViewEvent.OnSeekToTime -> {
+                    seekToTime(event.position)
+                }
             }
         }
     }
 
-    private var currentTrackIndex: Int = -1
-    private lateinit var trackList: List<SearchSongsDTO>
-
-    private fun play(data: Pair<Int, List<SearchSongsDTO>>) {
-        currentTrackIndex = data.first
-        trackList = data.second.map { it }
-        setState { currentState.copy(isAbleToPlay = false, isLoading = true) }
-
+    private fun prepare() {
         mediaPlayerController.prepare(
-            pathSource = getTrackLink(trackList[currentTrackIndex].videoId),
             listener = object : MediaPlayerListener {
                 override fun onReady() {
-                    mediaPlayerController.start()
-                    updateSongState(trackList[currentTrackIndex])
-                    trackList.subList(1, trackList.size)
-                        .forEach { mediaPlayerController.addTrackToQueue(getTrackLink(it.videoId)) }
-                    //    mediaPlayerController.addTrackToQueue(getTrackLink(trackList[currentTrackIndex + 1].videoID))
-                }
-
-                override fun onAudioCompleted() {
-                    if (currentTrackIndex < trackList.size - 1) {
-                        currentTrackIndex++
-                        //    mediaPlayerController.addTrackToQueue(getTrackLink(trackList[currentTrackIndex + 1].videoID))
-                        updateSongState(trackList[currentTrackIndex])
-                    } else {
-                        mediaPlayerController.stop()
+                    setState {
+                        currentState.copy(
+                            currentTrackData = trackDataList[currentTrackIndex],
+                            isMiniPlayerVisible = true,
+                            isLoading = false,
+                            isPlaying = true,
+                            isAbleToPlay = true,
+                        )
                     }
                 }
 
-                override fun onError() {
-
+                override fun onAudioCompleted() {
+                    currentTrackIndex++
+                    setState { currentState.copy(currentTrackData = trackDataList[currentTrackIndex]) }
                 }
 
+                override fun onError() {
+                    setState { currentState.copy() }
+                }
             }
         )
     }
 
-    private fun updateSongState(
-        songDetails: SearchSongsDTO,
-    ) {
-        setState {
-            currentState.copy(
-                songName = songDetails.title,
-                songArtist = songDetails.artists.joinToString(separator = ", ") { it.name },
-                imageUrl = songDetails.thumbnails[1].url,
-                isAbleToPlay = true,
-                isPlaying = true,
-                isLoading = false,
-                isMiniPlayerVisible = true,
-                currentTrackID = songDetails.videoId,
-            )
-        }
+    private fun play(data: Pair<Int, List<TrackData>>) {
+        trackDataList = data.second
+        currentTrackIndex = data.first
+        mediaPlayerController.start(trackDataList.map { it.trackUrl })
+        mediaPlayerController.playByIndex(currentTrackIndex)
     }
 
-    private fun onResumePause() {
-        if (currentState.isPlaying) {
-            mediaPlayerController.pause()
-            setState { currentState.copy(isPlaying = false) }
-        } else {
-            mediaPlayerController.start()
-            setState { currentState.copy(isPlaying = true) }
-        }
+    private fun onPause() {
+        mediaPlayerController.pause()
+        setState { currentState.copy(isPlaying = !currentState.isPlaying) }
     }
 
     private fun hideShowPlayer() {
         setState { currentState.copy(isMiniPlayerVisible = !currentState.isMiniPlayerVisible) }
     }
 
-    private suspend fun playNext() {
-        if (currentTrackIndex < trackList.size - 1) {
+    private fun playNext() {
+        if (currentTrackIndex < trackDataList.size - 1) {
             currentTrackIndex++
-            updateSongState(trackList[currentTrackIndex])
-            //  setState { currentState.copy(isAbleToPlay = false) }
+            setState { currentState.copy(currentTrackData = trackDataList[currentTrackIndex]) }
             mediaPlayerController.playNext()
-            //  delay(1000)
-            // setState { currentState.copy(isAbleToPlay = true) }
-
         }
     }
 
-    private suspend fun playPrevious() {
+    private fun playPrevious() {
         if (currentTrackIndex > 0) {
             currentTrackIndex--
-            updateSongState(trackList[currentTrackIndex])
+            setState { currentState.copy(currentTrackData = trackDataList[currentTrackIndex]) }
             mediaPlayerController.playPrevious()
         }
     }
 
+    val playbackTime = mediaPlayerController.playbackTimeFlow()
+        .stateIn(
+            scope = viewModelScope,
+            initialValue = 0L,
+            started = SharingStarted.WhileSubscribed(5_000L)
+        )
+
+
+    private fun seekToTime(position: Float) {
+        val duration = mediaPlayerController.getDuration().toFloat()
+        val time = duration * position
+        mediaPlayerController.seekToTime(time.toLong())
+    }
 }
 
 
 sealed class PlayerViewEvent() : ViewEvent {
-    class OnPlay(val data: Pair<Int, List<SearchSongsDTO>>) : PlayerViewEvent()
+    class OnPlay(val data: Pair<Int, List<TrackData>>) : PlayerViewEvent()
     class OnPlayIconClick() : PlayerViewEvent()
     class OnHideShowMiniPlayer() : PlayerViewEvent()
     class OnPlayNext() : PlayerViewEvent()
     class OnPlayPrevious() : PlayerViewEvent()
+    class OnSeekToTime(val position: Float) : PlayerViewEvent()
 }

@@ -2,7 +2,11 @@ package dev.mvrlxc.zmeumusic.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.windowInsetsBottomHeight
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Email
@@ -26,9 +30,13 @@ fun MiniPlayer(
     backgroundColor: Color = MaterialTheme.colorScheme.background,
     isAble: Boolean = true,
 ) {
-    Box(modifier = Modifier.background(backgroundColor)) {
+    Box(
+        modifier = Modifier
+            .background(backgroundColor)
+            .height(80.dp),
+    ) {
         SongCard(
-            modifier = modifier.height(72.dp),
+            modifier = modifier,
             isEnabled = false,
             onClick = onClick,
             onIconClick = onIconClick,

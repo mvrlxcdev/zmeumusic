@@ -11,18 +11,22 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import dev.mvrlxc.zmeumusic.domain.player.MediaPlayerController
 import dev.mvrlxc.zmeumusic.domain.player.MediaPlayerListener
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
 
-class MediaPlayerControllerImpl (context: Context) : MediaPlayerController {
+
+class MediaPlayerControllerImpl(context: Context) : MediaPlayerController {
     private val player = ExoPlayer.Builder(context).build()
 
-    override fun prepare(pathSource: String, listener: MediaPlayerListener) {
-        val mediaItem = listOf(MediaItem.fromUri(pathSource))
-
+    override fun prepare(listener: MediaPlayerListener) {
         player.addListener(object : Player.Listener {
             override fun onPlayerError(error: PlaybackException) {
                 super.onPlayerError(error)
                 listener.onError()
-                Log.d("media", "listener on error")
             }
 
             override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
@@ -30,9 +34,12 @@ class MediaPlayerControllerImpl (context: Context) : MediaPlayerController {
                 when (reason) {
                     Player.MEDIA_ITEM_TRANSITION_REASON_AUTO -> {
                         listener.onAudioCompleted()
-                        Log.d("media", "listener on audio completed")
+                        Log.d("media", "completed")
                     }
 
+                    Player.MEDIA_ITEM_TRANSITION_REASON_SEEK -> {
+
+                    }
                 }
             }
 
@@ -50,24 +57,30 @@ class MediaPlayerControllerImpl (context: Context) : MediaPlayerController {
                 super.onPlayerErrorChanged(error)
                 listener.onError()
             }
+
+
         })
-        player.clearMediaItems()
-        player.setMediaItems(mediaItem)
         player.prepare()
     }
 
-    override fun start() {
-        player.play()
+    override fun start(pathSources: List<String>) {
+        val mediaItem = pathSources.map { MediaItem.fromUri(it) }
+        player.clearMediaItems()
+        player.setMediaItems(mediaItem)
         Log.d("media", "player.start")
     }
 
     override fun pause() {
-        if (player.isPlaying)
-            player.pause()
+        if (player.isPlaying) player.pause() else player.play()
     }
 
     override fun stop() {
         player.stop()
+    }
+
+    override fun playByIndex(index: Int) {
+        player.seekTo(index, 0L)
+        player.play()
     }
 
     override fun release() {
@@ -84,13 +97,30 @@ class MediaPlayerControllerImpl (context: Context) : MediaPlayerController {
         Log.d("media", "player.add to queue")
     }
 
-    @OptIn(UnstableApi::class)
     override fun playNext() {
-        player.next()
+        player.seekToNext()
     }
 
-    @OptIn(UnstableApi::class)
     override fun playPrevious() {
-        player.previous()
+        player.seekToPreviousMediaItem()
     }
+
+    override fun getDuration(): Long {
+        return player.duration
+    }
+
+    override fun playbackTimeFlow(): Flow<Long> {
+        return flow {
+            while (true) {
+                emit(player.currentPosition)
+                delay(1000)
+            }
+        }
+    }
+
+    override fun seekToTime(time: Long) {
+        player.seekTo(time)
+    }
+
+
 }

@@ -1,15 +1,20 @@
 package dev.mvrlxc.zmeumusic.domain.player
 
 import android.content.Context
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 
 interface MediaPlayerController {
-    fun prepare(pathSource: String, listener: MediaPlayerListener)
+    fun prepare(listener: MediaPlayerListener)
 
-    fun start()
+    fun start(pathSources: List<String>)
 
     fun pause()
 
     fun stop()
+
+    fun playByIndex(index: Int)
 
     fun isPlaying(): Boolean
 
@@ -20,4 +25,11 @@ interface MediaPlayerController {
     fun playNext()
 
     fun playPrevious()
+
+    fun getDuration(): Long
+
+    fun playbackTimeFlow(): Flow<Long>
+
+    fun seekToTime(time: Long)
+
 }

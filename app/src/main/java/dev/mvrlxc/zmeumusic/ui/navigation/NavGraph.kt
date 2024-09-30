@@ -1,6 +1,10 @@
 package dev.mvrlxc.zmeumusic.ui.navigation
 
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -10,6 +14,8 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import dev.mvrlxc.zmeumusic.data.remote.model.SearchSongsDTO
+import dev.mvrlxc.zmeumusic.data.utils.mappers.toTrackData
 import dev.mvrlxc.zmeumusic.ui.components.PlayerBottomSheetScaffold
 import dev.mvrlxc.zmeumusic.ui.screen.player.PlayerScreen
 import dev.mvrlxc.zmeumusic.ui.screen.player.PlayerViewEvent
@@ -37,12 +43,13 @@ fun NavGraph() {
             playerViewModel.onTriggerEvent(PlayerViewEvent.OnHideShowMiniPlayer())
         },
         onIconClick = { playerViewModel.onTriggerEvent(PlayerViewEvent.OnPlayIconClick()) },
-        songName = playerUIState.songName,
-        artistName = playerUIState.songArtist,
+        songName = playerUIState.currentTrackData.name,
+        artistName = playerUIState.currentTrackData.artists,
         isPlaying = playerUIState.isPlaying,
-        imageUrl = playerUIState.imageUrl,
+        imageUrl = playerUIState.currentTrackData.thumbnailUrlSmall,
         isLoading = playerUIState.isAbleToPlay,
-        sheetPeekHeight = if (playerUIState.isMiniPlayerVisible) 72.dp else 0.dp,
+        sheetPeekHeight = if (playerUIState.isMiniPlayerVisible) 80.dp + WindowInsets.systemBars.asPaddingValues()
+            .calculateBottomPadding() else 0.dp,
         sheetContent = { PlayerScreen(viewModel = playerViewModel) },
     ) { innerPadding ->
 
@@ -53,9 +60,12 @@ fun NavGraph() {
         ) {
             searchScreen(
                 playerViewModel = playerViewModel,
-                onCardClick = { playerViewModel.onTriggerEvent(PlayerViewEvent.OnPlay(it)) },
+                onCardClick = { data ->
+                    playerViewModel.onTriggerEvent(
+                        PlayerViewEvent.OnPlay(Pair(data.first, data.second.map { it.toTrackData() }))
+                    )
+                },
             )
-            playerScreen(viewModel = playerViewModel)
         }
     }
 }
