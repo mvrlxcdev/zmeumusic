@@ -1,5 +1,6 @@
 package dev.mvrlxc.zmeumusic.ui.screen.player
 
+import androidx.compose.foundation.pager.PagerState
 import androidx.lifecycle.viewModelScope
 import dev.mvrlxc.zmeumusic.data.model.TrackData
 import dev.mvrlxc.zmeumusic.data.remote.model.SearchSongsDTO
@@ -22,9 +23,6 @@ import kotlin.math.absoluteValue
 class PlayerViewModel(
     private val mediaPlayerController: MediaPlayerController,
 ) : BaseViewModel<PlayerViewState, PlayerViewEvent>() {
-
-    private var currentTrackIndex: Int = -1
-    private lateinit var trackDataList: List<TrackData>
 
     init {
         prepare()
@@ -68,7 +66,7 @@ class PlayerViewModel(
                 override fun onReady() {
                     setState {
                         currentState.copy(
-                            currentTrackData = trackDataList[currentTrackIndex],
+                            currentTrackData = currentState.trackQueue[currentTrackIndex],
                             isMiniPlayerVisible = true,
                             isLoading = false,
                             isPlaying = true,
@@ -78,8 +76,8 @@ class PlayerViewModel(
                 }
 
                 override fun onAudioCompleted() {
-                    currentTrackIndex++
-                    setState { currentState.copy(currentTrackData = trackDataList[currentTrackIndex]) }
+                    setState { currentState.copy(currentTrackIndex = currentTrackIndex + 1) }
+                    setState { currentState.copy(currentTrackData = currentState.trackQueue[currentTrackIndex]) }
                 }
 
                 override fun onError() {
@@ -89,11 +87,10 @@ class PlayerViewModel(
         )
     }
 
-    private fun play(data: Pair<Int, List<TrackData>>) {
-        trackDataList = data.second
-        currentTrackIndex = data.first
-        mediaPlayerController.start(trackDataList.map { it.trackUrl })
-        mediaPlayerController.playByIndex(currentTrackIndex)
+    private fun play(data: Triple<Int, List<TrackData>, String>) {
+        setState { currentState.copy(currentTrackIndex = data.first, trackQueue = data.second, playingFrom = data.third) }
+        mediaPlayerController.start(currentState.trackQueue.map { it.trackUrl })
+        mediaPlayerController.playByIndex(currentState.currentTrackIndex)
     }
 
     private fun onPause() {
@@ -106,17 +103,17 @@ class PlayerViewModel(
     }
 
     private fun playNext() {
-        if (currentTrackIndex < trackDataList.size - 1) {
-            currentTrackIndex++
-            setState { currentState.copy(currentTrackData = trackDataList[currentTrackIndex]) }
+        if (currentState.currentTrackIndex < currentState.trackQueue.size - 1) {
+            setState { currentState.copy(currentTrackIndex = currentState.currentTrackIndex + 1) }
+            setState { currentState.copy(currentTrackData = currentState.trackQueue[currentTrackIndex]) }
             mediaPlayerController.playNext()
         }
     }
 
     private fun playPrevious() {
-        if (currentTrackIndex > 0) {
-            currentTrackIndex--
-            setState { currentState.copy(currentTrackData = trackDataList[currentTrackIndex]) }
+        if (currentState.currentTrackIndex  > 0) {
+            setState { currentState.copy(currentTrackIndex = currentState.currentTrackIndex - 1) }
+            setState { currentState.copy(currentTrackData = currentState.trackQueue[currentTrackIndex]) }
             mediaPlayerController.playPrevious()
         }
     }
@@ -138,10 +135,10 @@ class PlayerViewModel(
 
 
 sealed class PlayerViewEvent() : ViewEvent {
-    class OnPlay(val data: Pair<Int, List<TrackData>>) : PlayerViewEvent()
-    class OnPlayIconClick() : PlayerViewEvent()
-    class OnHideShowMiniPlayer() : PlayerViewEvent()
-    class OnPlayNext() : PlayerViewEvent()
-    class OnPlayPrevious() : PlayerViewEvent()
+    class OnPlay(val data: Triple<Int, List<TrackData>, String>) : PlayerViewEvent()
+    data object OnPlayIconClick : PlayerViewEvent()
+    data object OnHideShowMiniPlayer : PlayerViewEvent()
+    data object OnPlayNext : PlayerViewEvent()
+    data object OnPlayPrevious : PlayerViewEvent()
     class OnSeekToTime(val position: Float) : PlayerViewEvent()
 }

@@ -19,7 +19,7 @@ fun NavController.navigateSearch(
 }
 
 fun NavGraphBuilder.searchScreen(
-    onCardClick: ((Pair<Int, List<SearchSongsDTO>>)) -> Unit,
+    onCardClick: ((Triple<Int, List<SearchSongsDTO>, String>)) -> Unit,
     playerViewModel: PlayerViewModel,
 
     ) {

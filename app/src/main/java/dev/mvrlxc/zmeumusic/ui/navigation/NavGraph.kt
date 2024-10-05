@@ -37,12 +37,13 @@ fun NavGraph() {
     val playerViewModel = koinViewModel<PlayerViewModel>()
     val playerUIState by playerViewModel.uiState.collectAsState()
 
+
     PlayerBottomSheetScaffold(
         onClick = {
             navController.navigatePlayer()
-            playerViewModel.onTriggerEvent(PlayerViewEvent.OnHideShowMiniPlayer())
+            playerViewModel.onTriggerEvent(PlayerViewEvent.OnHideShowMiniPlayer)
         },
-        onIconClick = { playerViewModel.onTriggerEvent(PlayerViewEvent.OnPlayIconClick()) },
+        onIconClick = { playerViewModel.onTriggerEvent(PlayerViewEvent.OnPlayIconClick) },
         songName = playerUIState.currentTrackData.name,
         artistName = playerUIState.currentTrackData.artists,
         isPlaying = playerUIState.isPlaying,
@@ -62,7 +63,7 @@ fun NavGraph() {
                 playerViewModel = playerViewModel,
                 onCardClick = { data ->
                     playerViewModel.onTriggerEvent(
-                        PlayerViewEvent.OnPlay(Pair(data.first, data.second.map { it.toTrackData() }))
+                        PlayerViewEvent.OnPlay(Triple(data.first, data.second.map { it.toTrackData() }, data.third))
                     )
                 },
             )

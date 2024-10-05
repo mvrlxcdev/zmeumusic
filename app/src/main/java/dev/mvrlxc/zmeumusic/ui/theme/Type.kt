@@ -34,16 +34,16 @@ val Typography = Typography(
     ),
 
     labelLarge = TextStyle(
-        fontSize = 0.sp,
-        fontWeight = FontWeight.Medium
+        fontSize = 24.sp,
+        fontWeight = FontWeight.Bold
     ),
     labelMedium = TextStyle(
-        fontSize = 0.sp,
-        fontWeight = FontWeight.Normal
+        fontSize = 16.sp,
+        fontWeight = FontWeight.Bold
     ),
     labelSmall = TextStyle(
-        fontSize = 0.sp,
-        fontWeight = FontWeight.Normal
+        fontSize = 12.sp,
+        fontWeight = FontWeight.Bold
     ),
 
     displayLarge = TextStyle(

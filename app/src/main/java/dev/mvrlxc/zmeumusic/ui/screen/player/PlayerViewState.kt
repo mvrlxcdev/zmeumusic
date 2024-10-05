@@ -9,5 +9,8 @@ data class PlayerViewState(
     val isAbleToPlay: Boolean = true,
     val isLoading: Boolean = true,
     val isMiniPlayerVisible: Boolean = false,
-    val currentTrackData: TrackData = TrackData(),
+    val currentTrackData: TrackData = TrackData.init(),
+    val trackQueue: List<TrackData> = emptyList(),
+    val playingFrom: String = "",
+    val currentTrackIndex: Int = -1,
 ) : ViewState

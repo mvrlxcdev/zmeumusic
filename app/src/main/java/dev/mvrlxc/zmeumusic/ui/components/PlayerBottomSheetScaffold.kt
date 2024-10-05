@@ -1,5 +1,7 @@
 package dev.mvrlxc.zmeumusic.ui.components
 
+import android.annotation.SuppressLint
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -10,7 +12,9 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.windowInsetsPadding
@@ -37,6 +41,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.min
 
+@SuppressLint("UseOfNonLambdaOffsetOverload")
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
 fun PlayerBottomSheetScaffold(
@@ -66,7 +71,7 @@ fun PlayerBottomSheetScaffold(
     }
 
     val dragHandleAlpha by animateFloatAsState(
-        targetValue = 1f - normalizedOffset
+        targetValue = 1f - normalizedOffset, label = "animate drag handle alpha"
     )
 
     LaunchedEffect(Unit) {
@@ -90,7 +95,7 @@ fun PlayerBottomSheetScaffold(
         containerColor = Color.Transparent,
         sheetContentColor = Color.Transparent,
         sheetDragHandle = {
-            Column {
+            Column(modifier = Modifier.height(80.dp * dragHandleAlpha)) {
                 MiniPlayer(
                     modifier = Modifier
                         .graphicsLayer(alpha = dragHandleAlpha),

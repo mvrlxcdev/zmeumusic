@@ -27,7 +27,7 @@ import dev.mvrlxc.zmeumusic.utils.getTrackLink
 @Composable
 fun SearchScreen(
     viewModel: SearchViewModel,
-    onCardClick: (Pair<Int, List<SearchSongsDTO>>) -> Unit,
+    onCardClick: (Triple<Int, List<SearchSongsDTO>, String>) -> Unit,
     activeTrackID: String,
     isAbleToPlay: Boolean,
 ) {
@@ -61,7 +61,7 @@ private fun Content(
     activeTrackID: String,
     onTextChange: (String) -> Unit,
     songsData: List<SearchSongsDTO>,
-    onCardClick: (Pair<Int, List<SearchSongsDTO>>) -> Unit,
+    onCardClick: (Triple<Int, List<SearchSongsDTO>, String>) -> Unit,
 
 
     ) {
@@ -92,7 +92,7 @@ private fun Content(
                         SongCard(
                             isAble = isAbleToPlay,
                             isEnabled = activeTrackID == getTrackLink(item.videoId),
-                            onClick = { onCardClick(Pair(index, songsData)) },
+                            onClick = { onCardClick(Triple(index, songsData, "search $textFieldValue")) },
                             onIconClick = {},
                             songName = item.title,
                             songArtist = item.artists.joinToString(", ") { it.name },
